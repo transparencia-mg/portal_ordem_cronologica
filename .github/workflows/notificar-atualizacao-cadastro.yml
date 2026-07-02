@@ -1,0 +1,55 @@
+name: Notificar atualização da pasta cadastro
+
+# Dispara sempre que houver um push que altere os arquivos CSV
+# dentro de dataset/data/ (ordemcronologica_2026.csv, pagamentos2026.csv, etc.)
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'dataset/data/**.csv'
+
+jobs:
+  enviar-email:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Descobrir quais arquivos mudaram
+        id: mudancas
+        run: |
+          echo "arquivos<<EOF" >> $GITHUB_OUTPUT
+          git diff --name-only HEAD~1 HEAD -- dataset/data/ >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Enviar e-mail de notificação
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: ${{ secrets.SMTP_PORT }}
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: "[Ordem Cronológica] Atualização na pasta cadastro"
+          to: kesia.bomfa@cge.mg.gov.br,silviana.faria@cge.mg.gov.br
+          from: "Portal Ordem Cronológica <notificacoes@cge.mg.gov.br>"
+          body: |
+            Olá,
+
+            Foi identificada uma atualização nos dados da pasta cadastro
+            (dataset/data/) do repositório portal_ordem_cronologica.
+
+            Commit: ${{ github.sha }}
+            Autor: ${{ github.actor }}
+            Mensagem: ${{ github.event.head_commit.message }}
+
+            Arquivos alterados:
+            ${{ steps.mudancas.outputs.arquivos }}
+
+            Ver detalhes no GitHub:
+            ${{ github.event.head_commit.url }}
+
+            ---
+            Este e-mail foi enviado automaticamente pelo GitHub Actions.
