@@ -651,6 +651,8 @@ function _normalizarRow(row){
   n.data_liquidacao=parseDateBR(n.data_liquidacao);
   n.data_registro=parseDateBR(n.data_registro);
   n.data_pagamento=parseDateBR(n.data_pagamento);
+  n.valor_despesa_liquidada=parseValorBR(n.valor_despesa_liquidada);
+  n.valor_pago_financeiro=parseValorBR(n.valor_pago_financeiro);
   n.quebra_sim_nao=(n.quebra_sim_nao||'NAO').toUpperCase()==='SIM'?'SIM':'NAO';
   return n;
 }
